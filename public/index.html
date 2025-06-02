@@ -144,7 +144,7 @@
 
   <div class="panel">
     <h1>🛠️ Bedrock Bot Controller</h1>
-    <div class="connection-status danger">
+    <div class="connection-status danger" id="connection-status">
         <p>Status: <span id="cstatus">Disconnected</span></p>
 
     </div>
@@ -267,24 +267,26 @@
     }
 
     function checkConnectionStatus() {
+        const statusContainer = document.getElementById('connection-status');
         const statusElement = document.getElementById('cstatus');
         fetch('/api/status')
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'connected') {
                     statusElement.textContent = 'Connected';
-                    statusElement.classList.remove('danger');
-                    statusElement.classList.add('success');
+                    statusContainer.classList.remove('danger');
+                    statusContainer.classList.add('success');
                 } else {
                     statusElement.textContent = 'Disconnected';
-                    statusElement.classList.remove('success');
-                    statusElement.classList.add('danger');
+                    statusContainer.classList.remove('success');
+                    statusContainer.classList.add('danger');
                 }
             })
             .catch(err => {
                 console.error('Error fetching status:', err);
             });
     }
+    checkConnectionStatus(); // Initial check on load
     setInterval(checkConnectionStatus, 3000); // Check every 3 seconds
   </script>
 </body>
