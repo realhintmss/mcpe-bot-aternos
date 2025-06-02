@@ -20,6 +20,12 @@ config = loadConfig();
 // Express App
 const app = express();
 
+// Log Requests
+app.use((req, res, next) => {
+    console.log(`Received ${req.method} request for ${req.url}`);
+    next();
+});
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
