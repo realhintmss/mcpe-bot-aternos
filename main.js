@@ -1,0 +1,132 @@
+import { createClient, ping } from 'bedrock-protocol';
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+var config = null;
+var client = null;
+var botStatus = 'disconnected';
+
+// Variables
+function loadConfig(){
+    return JSON.parse(fs.readFileSync('config.json'));
+}
+config = loadConfig();
+
+// Express App
+const app = express();
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+app.get('/static/:file', (req, res) => {
+    res.sendFile(__dirname + '/public/' + req.params.file);
+});
+
+// Api
+app.get('/api/ping', (req, res) => {
+    ping({host: config.server_ip, port: config.server_port})
+        .then(response => {
+            res.json({status: 'success', data: response});
+        })
+        .catch(error => {
+            res.json({status: 'error', message: error.message});
+        });
+});
+app.get('/api/connect', (req, res) => {
+    try {
+        if (client !== null) {
+            res.json({status: 'error', message: 'Bot is already connected'});
+            return;
+        }
+        connectBot();
+        res.json({status: 'success', message: 'Bot Connection Requested'});
+    } catch (error) {
+        res.json({status: 'error', message: error.message});
+    }
+});
+app.get('/api/disconnect', (req, res) => {
+    try {
+        if (client === null) {
+            res.json({status: 'error', message: 'Bot is not connected'});
+            return;
+        }
+        disconnectBot();
+        res.json({status: 'success', message: 'Bot disconnected'});
+    } catch (error) {
+        res.json({status: 'error', message: error.message});
+    }
+});
+app.get('/api/status', (req, res) => {
+    try {
+        res.json({status: botStatus});
+    } catch (error) {
+        res.json({status: 'error', message: error.message});
+    }
+});
+
+// Bot Functions
+function connectBot() {
+    if (client !== null){
+        disconnectBot();
+    }
+    client = createClient({
+        host: config.server_ip,
+        port: config.server_port,
+        username: config.player_name,
+        version: config.server_version,
+        offline: true
+    })
+    client.on('error', (error) => {
+        console.error('Error:', error);
+        disconnectBot();
+    });
+    client.on('disconnect', (reason) => {
+        console.log('Bot disconnected:', reason);
+        disconnectBot();
+    });
+    client.on('end', () => {
+        console.log('Bot connection ended');
+        disconnectBot();
+    });
+    client.on('connect', () => {
+        botStatus = 'connected';
+        console.log('Bot connected to the server');
+    });
+}
+function disconnectBot() {
+    if (client !== null) {
+        client.disconnect();
+        client = null;
+        botStatus = 'disconnected';
+    }
+}
+
+// Periodically Check Ping Status & Try to connect
+setInterval(() => {
+    if (client === null) {
+        ping({host: config.server_ip, port: config.server_port})
+            .then(response => {
+                console.log('Ping successful:', response);
+                try{
+                    if (botStatus === 'disconnected') {
+                        connectBot();
+                    }
+                }catch(error){
+                    console.error('Error occurred while trying to connect:', error);
+                }
+            })
+            .catch(error => {
+                console.error('Ping failed:', error);
+                disconnectBot();
+            });
+    }
+}, 5000);
+// Run
+app.listen(config.web_port, () => {
+    console.log(`Web server is running on port ${config.web_port}`);
+});
