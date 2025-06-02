@@ -99,7 +99,7 @@ function connectBot() {
         console.log('Bot connection ended');
         disconnectBot();
     });
-    client.on('connect', () => {
+    client.on('spawn', () => {
         botStatus = 'connected';
         console.log('Bot connected to the server');
     });
@@ -131,7 +131,7 @@ setInterval(() => {
                 disconnectBot();
             });
     }
-}, 5000);
+}, 1000*50);
 setInterval(() => {
     // Keep render alive
     var url = 'https://hdvej-bot.onrender.com/api/status'
