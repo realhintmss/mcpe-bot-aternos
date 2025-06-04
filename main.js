@@ -114,23 +114,25 @@ function disconnectBot() {
 
 // Periodically Check Ping Status & Try to connect
 setInterval(() => {
-    if (client === null) {
-        ping({host: config.server_ip, port: config.server_port})
-            .then(response => {
+    ping({host: config.server_ip, port: config.server_port})
+        .then(response => {
+            if (client === null) {
                 console.log('Ping successful:', response);
-                try{
+                try {
                     if (botStatus === 'disconnected') {
                         connectBot();
                     }
-                }catch(error){
+                } catch (error) {
                     console.error('Error occurred while trying to connect:', error);
                 }
-            })
-            .catch(error => {
-                console.error('Ping failed:', error);
+            }
+        })
+        .catch(error => {
+            if (client !== null) {
+                console.error('Ping failed but bot is connected, Assuming server is down:');
                 disconnectBot();
-            });
-    }
+            }
+        });
 }, 1000*50);
 setInterval(() => {
     // Keep render alive
