@@ -10,6 +10,10 @@ const __dirname = path.dirname(__filename);
 var config = null;
 var client = null;
 var botStatus = 'disconnected';
+var botConnectedTime = null; // Time will be an integer representing the time in milliseconds since the epoch
+
+// Set a example time to check the code
+// botConnectedTime = Date.now() - 1000 * 60 * 5; // 5 minutes ago
 
 // Variables
 function loadConfig(){
@@ -30,7 +34,7 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
 app.get('/static/:file', (req, res) => {
-    res.sendFile(__dirname + '/public/' + req.params.file);
+    res.sendFile(__dirname + '/static/' + req.params.file);
 });
 
 // Api
@@ -69,7 +73,7 @@ app.get('/api/disconnect', (req, res) => {
 });
 app.get('/api/status', (req, res) => {
     try {
-        res.json({status: botStatus});
+        res.json({status: botStatus, connectedTime: botConnectedTime});
     } catch (error) {
         res.json({status: 'error', message: error.message});
     }
@@ -101,6 +105,7 @@ function connectBot() {
     });
     client.on('spawn', () => {
         botStatus = 'connected';
+        botConnectedTime = Date.now(); // Set the connected time to now
         console.log('Bot connected to the server');
     });
 }
@@ -108,6 +113,7 @@ function disconnectBot() {
     if (client !== null) {
         client.disconnect();
         client = null;
+        botConnectedTime = null; // Reset the connected time
         botStatus = 'disconnected';
     }
 }
