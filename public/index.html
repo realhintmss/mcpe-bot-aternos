@@ -10,143 +10,12 @@
   <meta property="og:description" content="Control your Bedrock Bot with ease. Created by Mahib.">
   <meta property="og:type" content="website">
 
+  <!-- Preload -->
+  <link rel="preload" href="/static/style.css" as="style">
+
   <title>Bedrock Bot Control Panel</title>
-  <style>
-    body {
-      background: linear-gradient(135deg, #1e1e2f, #2a2a40);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #ffffff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .panel {
-      background: #2e2e42;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-      width: 400px;
-      text-align: center;
-      position: relative;
-    }
-
-    .panel h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #00ffe7;
-    }
-
-    .btn {
-      display: block;
-      width: 100%;
-      margin: 10px 0;
-      padding: 12px;
-      background-color: #00ffe7;
-      color: #111;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .btn:hover {
-      background-color: #00cabb;
-    }
-
-    .btn:disabled {
-      background-color: #009e98;
-      cursor: not-allowed;
-    }
-
-    .response {
-      margin-top: 20px;
-      background: #1c1c2b;
-      padding: 12px;
-      border-radius: 8px;
-      min-height: 50px;
-      font-family: monospace;
-      text-align: left;
-    }
-
-    .loader {
-      border: 4px solid rgba(0, 255, 231, 0.2);
-      border-top: 4px solid #00ffe7;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto 0;
-      display: none;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    /* Popup Styles */
-    .popup {
-      display: none; 
-      position: fixed;
-      z-index: 10;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
-      justify-content: center;
-      align-items: center;
-    }
-
-    .popup-content {
-      background-color: #2e2e42;
-      padding: 24px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      color: #fff;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-      animation: fadeIn 0.3s ease;
-      position: relative;
-      text-align: center;
-    }
-
-    .close-btn {
-      position: absolute;
-      top: 10px; right: 14px;
-      font-size: 24px;
-      cursor: pointer;
-      color: #fff;
-      transition: color 0.2s ease;
-    }
-
-    .close-btn:hover {
-      color: #ff4d4d;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-    .connection-status {
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .connection-status.success {
-      background-color: #28a745;
-      color: #fff;
-    }
-    .connection-status.danger {
-      background-color: #dc3545;
-      color: #fff;
-    }
-
-
-  </style>
+  
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
@@ -154,7 +23,16 @@
     <h1>🛠️ Bedrock Bot Controller</h1>
     <div class="connection-status danger" id="connection-status">
         <p>Status: <span id="cstatus">Disconnected</span></p>
-
+    </div>
+    <div class="since-connect">
+      <p>Connection Time:</p>
+      <div class="time-window">
+        <div class="hour">N/A</div>
+        <span class="divider">:</span>
+        <div class="minute">N/A</div>
+        <span class="divider">:</span>
+        <div class="second">N/A</div>
+      </div>
     </div>
     <button class="btn" id="connectBtn" onclick="sendCommand('connect')">🔌 Connect</button>
     <button class="btn" id="disconnectBtn" onclick="sendCommand('disconnect')">❌ Disconnect</button>
@@ -171,134 +49,7 @@
   </div>
 
   <script>
-    function openPopup() {
-        document.getElementById('popup').style.display = 'flex';
-    }
-
-    function closePopup() {
-        document.getElementById('popup').style.display = 'none';
-        const popupContent = document.getElementById('popup-main-content');
-        popupContent.innerHTML = '';
-    }
-
-    function sendCommand(cmd) {
-      const loader = document.getElementById('loader');
-      const responseBox = document.getElementById('responseBox');
-      const buttons = document.querySelectorAll('.btn');
-
-      // Show loader and disable buttons
-      loader.style.display = 'block';
-      responseBox.textContent = '⏳ Please wait...';
-      buttons.forEach(btn => btn.disabled = true);
-
-      fetch(`/api/${cmd}`)
-        .then(res => res.json())
-        .then(data => {
-            if(cmd === 'ping') {
-                if(data.status === 'success') {
-                    const popupContent = document.getElementById('popup-main-content');
-                    
-                    const table = document.createElement('table');
-                    table.style.width = '100%';
-                    table.style.borderCollapse = 'collapse';
-                    table.style.marginTop = '10px';
-
-                    const headerRow = document.createElement('tr');
-                    const headers = ['Key', 'Value'];
-                    headers.forEach(header => {
-                        const th = document.createElement('th');
-                        th.textContent = header;
-                        th.style.border = '1px solid #ddd';
-                        th.style.padding = '8px';
-                        th.style.textAlign = 'left';
-                        headerRow.appendChild(th);
-                    });
-
-                    table.appendChild(headerRow);
-
-                    Object.entries(data.data).forEach(([key, value]) => {
-                        const row = document.createElement('tr');
-                        const keyCell = document.createElement('td');
-                        keyCell.textContent = key;
-                        keyCell.style.border = '1px solid #ddd';
-                        keyCell.style.padding = '8px';
-                        row.appendChild(keyCell);
-
-                        const valueCell = document.createElement('td');
-                        valueCell.textContent = value;
-                        valueCell.style.border = '1px solid #ddd';
-                        valueCell.style.padding = '8px';
-                        row.appendChild(valueCell);
-
-                        table.appendChild(row);
-                    });
-
-                    popupContent.appendChild(table);
-
-                    openPopup();
-
-                    responseBox.textContent = '✅ Ping successful! Check the popup for details.';
-
-                }else{
-                    responseBox.textContent = '⚠️ Error: ' + data.message;
-                }
-
-            }else if (cmd === 'connect'){
-                const popupContent = document.getElementById('popup-main-content');
-                if (data.status === 'success'){
-                    popupContent.textContent = '✅ Connection Requested successfully!';
-                }else{
-                    popupContent.textContent = '⚠️ Error: ' + data.message;
-                }
-                responseBox.textContent = popupContent.textContent;
-                openPopup();
-                
-            }else if(cmd === 'disconnect'){
-                const popupContent = document.getElementById('popup-main-content');
-                if (data.status === 'success'){
-                    popupContent.textContent = '✅ Disconnection Requested successfully!';
-                }else{
-                    popupContent.textContent = '⚠️ Error: ' + data.message;
-                }
-                responseBox.textContent = popupContent.textContent;
-                openPopup();
-
-            }else{
-                responseBox.textContent = JSON.stringify(data, null, 2);
-            }
-            
-        })
-        .catch(err => {
-          responseBox.textContent = '⚠️ Error: ' + err;
-        })
-        .finally(() => {
-          loader.style.display = 'none';
-          buttons.forEach(btn => btn.disabled = false);
-        });
-    }
-
-    function checkConnectionStatus() {
-        const statusContainer = document.getElementById('connection-status');
-        const statusElement = document.getElementById('cstatus');
-        fetch('/api/status')
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'connected') {
-                    statusElement.textContent = 'Connected';
-                    statusContainer.classList.remove('danger');
-                    statusContainer.classList.add('success');
-                } else {
-                    statusElement.textContent = 'Disconnected';
-                    statusContainer.classList.remove('success');
-                    statusContainer.classList.add('danger');
-                }
-            })
-            .catch(err => {
-                console.error('Error fetching status:', err);
-            });
-    }
-    checkConnectionStatus(); // Initial check on load
-    setInterval(checkConnectionStatus, 3000); // Check every 3 seconds
   </script>
+  <script src="/static/script.js" defer></script>
 </body>
 </html>
