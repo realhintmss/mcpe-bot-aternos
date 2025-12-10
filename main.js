@@ -152,6 +152,18 @@ setInterval(() => {
             console.error('Error fetching render status:', error);
         });
 }, 1000*30) // Run every 30 seconds to keep the process alive
+setInterval(() => {
+    // Keep render alive
+    var url = 'https://hdvej-bot.onrender.com/'
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Render status:', data);
+        })
+        .catch(error => {
+            console.error('Error fetching render status:', error);
+        });
+}, 1000*180) // Run every 30 seconds to keep the process alive
 // Run
 app.listen(config.web_port, () => {
     console.log(`Web server is running on port ${config.web_port}`);
