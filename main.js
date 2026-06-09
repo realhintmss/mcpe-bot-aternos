@@ -80,18 +80,27 @@ app.get('/api/status', (req, res) => {
 });
 
 // Bot Functions
-function connectBot() {
+function connectBot(forceAutoVersion = false) {
     if (client !== null){
         disconnectBot();
     }
-    client = createClient({
+    const clientOptions = {
         host: config.server_ip,
         port: config.server_port,
         username: config.player_name,
-        version: config.server_version,
         offline: true
-    })
+    };
+    if (!forceAutoVersion && config.server_version && config.server_version !== 'auto') {
+        clientOptions.version = config.server_version;
+    }
+    client = createClient(clientOptions);
     client.on('error', (error) => {
+        if (!forceAutoVersion && clientOptions.version && error?.message?.includes('Unsupported version')) {
+            console.warn(`Configured version ${clientOptions.version} is not supported by bedrock-protocol. Retrying with auto version detection.`);
+            disconnectBot();
+            connectBot(true);
+            return;
+        }
         console.error('Error:', error);
         disconnectBot();
     });
