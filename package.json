@@ -1,7 +1,7 @@
 {
   "type": "module",
   "dependencies": {
-    "bedrock-protocol": "^3.45.0",
+    "bedrock-protocol": "*",
     "express": "^5.1.0"
   },
   "main": "main.js"
