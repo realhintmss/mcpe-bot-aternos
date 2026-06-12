@@ -39,7 +39,7 @@ app.get('/static/:file', (req, res) => {
 
 // Api
 app.get('/api/ping', (req, res) => {
-    ping({host: config.server_ip, port: config.server_port})
+    ping({host: config.server_ip, port: config.server_port, timeout: 15000})
         .then(response => {
             res.json({status: 'success', data: response});
         })
