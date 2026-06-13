@@ -119,10 +119,12 @@ function disconnectBot() {
     }
 }
 
+let failCount = 0;
 // Periodically Check Ping Status & Try to connect
 setInterval(() => {
     ping({host: config.server_ip, port: config.server_port})
         .then(response => {
+            failCount = 0;
             if (client === null) {
                 console.log('Ping successful:', response);
                 try {
@@ -135,15 +137,20 @@ setInterval(() => {
             }
         })
         .catch(error => {
+            failCount = failCount + 1;
             if (client !== null) {
-                console.error('Ping failed but bot is connected, Assuming server is down:');
-                disconnectBot();
+                if (failCount > 1){
+                    console.error('Ping failed but bot is connected, Assuming server is down:');
+                    disconnectBot();
+                }else{
+                    console.error("Ping Failed.Available Attempt 1")
+                }
             }
         });
 }, 1000*50);
 setInterval(() => {
     // Keep render alive
-    var url = 'https://hdvej-bot.onrender.com/api/status'
+    var url = 'https://minecraft-bedrock-bot.onrender.com/api/status'
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -153,9 +160,9 @@ setInterval(() => {
             console.error('Error fetching render status:', error);
         });
 }, 1000*30) // Run every 30 seconds to keep the process alive
-setInterval(() => {
+/*setInterval(() => {
     // Keep render alive
-    var url = 'https://hdvej-bot.onrender.com/'
+    var url = 'https://minecraft-bedrock-bot.onrender.com/'
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -165,6 +172,7 @@ setInterval(() => {
             console.error('Error fetching render status:', error);
         });
 }, 1000*180) // Run every 30 seconds to keep the process alive
+*/
 // Run
 app.listen(config.web_port, () => {
     console.log(`Web server is running on port ${config.web_port}`);
