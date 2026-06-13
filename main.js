@@ -90,7 +90,8 @@ function connectBot() {
         username: config.player_name,
         version: config.server_version,
         offline: true,
-        connectTimeout: 45000
+        connectTimeout: 45000,
+        skipPing: true
     })
     client.on('error', (error) => {
         console.error('Error:', error);
