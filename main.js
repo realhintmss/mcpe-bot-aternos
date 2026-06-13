@@ -148,7 +148,7 @@ setInterval(() => {
                 }
             }
         });
-}, 1000*50);
+}, 1000*70);
 setInterval(() => {
     // Keep render alive
     var url = 'https://minecraft-bedrock-bot.onrender.com/api/status'
